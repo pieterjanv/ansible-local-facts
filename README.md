@@ -1,7 +1,9 @@
 # Allow Ansible roles to scope facts locally
 
 
-This repository contains a simple example of how to provide Ansible roles with locally scoped variables.
+This repository contains a simple proposal for providing Ansible roles with locally scoped variables.
+
+Because the proposal has not been extensively tested, it is meant to invite discussion and feedback.
 
 Run the following commands to see the example in action:
 
