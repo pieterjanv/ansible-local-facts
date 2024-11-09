@@ -207,4 +207,4 @@ block applies the condition seperately to all tasks under it and `include_role`
 simply inserts the tasks at the point of inclusion, the `when` condition 
 becomes false about halfway through.
 
-In this case a workaround would be to factor out the blocks tasks into a separate role and apply the `when` condition to `include_role`.
+In this case a workaround would be to factor out the block's tasks into a separate role and apply the `when` condition to `include_role`.
