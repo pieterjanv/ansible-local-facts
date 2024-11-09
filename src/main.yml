@@ -1,0 +1,22 @@
+- name: Demonstrate use of local scope
+  hosts: localhost
+  gather_facts: false
+  tasks:
+
+    - name: Demonstrate the danger of using a generic name
+      ansible.builtin.include_role:
+        name: roles/naive_outer
+
+    - name: Demonstrate the use of local scope
+      ansible.builtin.include_role:
+        name: roles/call
+      vars:
+        role: roles/locally_scoped_outer
+
+    - block:
+        - name: Demonstrate a pitfall despite local scope
+          ansible.builtin.include_role:
+            name: roles/call
+          vars:
+            role: roles/locally_scoped_outer
+      when: local.my_intermediate_result is not defined

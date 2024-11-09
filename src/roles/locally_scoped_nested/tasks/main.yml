@@ -1,0 +1,9 @@
+- name: set a fact under a generic name
+  ansible.utils.update_fact:
+    updates:
+      - path: my_intermediate_result
+        value: nested
+  register: local
+
+- ansible.builtin.debug:
+    var: local

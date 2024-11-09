@@ -1,0 +1,6 @@
+- name: set a fact under a generic name
+  ansible.builtin.set_fact:
+    my_intermediate_result: "nested"
+
+- ansible.builtin.debug:
+    var: my_intermediate_result

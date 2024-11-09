@@ -1,0 +1,21 @@
+- name: set a fact under a generic name
+  ansible.utils.update_fact:
+    updates:
+      - path: my_intermediate_result
+        value: "outer"
+  register: local
+
+- ansible.builtin.debug:
+    var: local
+
+- name: include a nested role
+  ansible.builtin.include_role:
+    name: roles/call
+  vars:
+    role: roles/locally_scoped_nested
+
+- name: assert the fact is what we want
+  ansible.builtin.assert:
+    that:
+      - local.my_intermediate_result == "outer"
+  ignore_errors: yes

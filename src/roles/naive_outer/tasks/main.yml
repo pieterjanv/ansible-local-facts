@@ -1,0 +1,16 @@
+- name: set a fact under a generic name
+  ansible.builtin.set_fact:
+    my_intermediate_result: "outer"
+
+- ansible.builtin.debug:
+    var: my_intermediate_result
+
+- name: include a nested role
+  ansible.builtin.include_role:
+    name: naive_nested
+
+- name: assert the fact is what we want
+  ansible.builtin.assert:
+    that:
+      - my_intermediate_result == "outer"
+  ignore_errors: yes
