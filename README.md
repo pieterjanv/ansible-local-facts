@@ -90,10 +90,12 @@ which is likely not what we intended. The problem is that the `my_intermediate_r
 The proposal in this repository is to call the role with a wrapper role around `include_role` called `call` that maintains a stack of dictionaries. Each time
 the wrapper is included it does the following five steps:
 
-1. Create a new dictionary and push it onto the stack.
-2. Set the new dictionary to the `local` fact.
+1. Replace the top of the stack with the current value of the `local` fact, if 
+it exists, then push a new role context onto the stack. The new context equals 
+the `input` fact if defined, defaulting to an empty dictionary.
+2. Set the `local` fact to the top of the stack.
 3. Include the role.
-4. Pop the dictionary from the stack.
+4. Pop the context from the stack.
 5. Reset the `local` fact to the top of the stack.
 
 The result is that the `local` fact can be used by the role to store intermediate results without the risk of it being overwritten by other roles.
