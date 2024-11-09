@@ -131,7 +131,7 @@ The following playbook demonstrates the use of the `call` role:
 --- # Path: roles/call/tasks/main.yml
 
 - name: push to stack
-  set_fact:
+  ansible.builtin.set_fact:
     my_stack: "{{ (
       my_stack[:-1] + [local] if my_stack is defined and my_stack | length > 0
       else []
@@ -145,7 +145,7 @@ The following playbook demonstrates the use of the `call` role:
     name: "{{ role }}"
 
 - name: pop from stack
-  set_fact:
+  ansible.builtin.set_fact:
     my_stack: "{{ my_stack[:-1] }}"
 
 - name: update local
