@@ -3,6 +3,15 @@
 
 This repository contains a simple proposal for providing Ansible roles with locally scoped variables.
 
+It consists of a three sets of roles:
+
+1. `naive_outer` and `naive_nested`, which demonstrate the problem of global scope. See [Motivation](#motivation).
+2. `call`, `locally_scoped_outer` and `locally_scoped_nested`, which demonstrate the proposed solution in its simplest and clearest form. See
+[Proof of concept solution](#proof-of-concept-solution).
+3. `robust_call`, `robust_locally_scoped_outer` and 
+`robust_locally_scoped_nested`, which demonstrate a more robust version of the 
+solution. See [A more robust solution](#a-more-robust-solution).
+
 Because the proposal has not been extensively tested, it is meant to invite discussion and feedback.
 
 Run the following commands to see the example in action:
@@ -82,16 +91,16 @@ fatal: [localhost]: FAILED! => {
 }
 ```
 
-which is likely not what we intended. The problem is that the `my_intermediate_result` fact is global and is overwritten by the nested role.
+The problem is that the `my_intermediate_result` fact is global and is overwritten by the nested role.
 
 
 ## Proof of concept solution
 
 The proposal in this repository is to call the role with a wrapper role around `include_role` called `call` that maintains a stack of dictionaries. Each time
-the wrapper is included it does the following five steps:
+the wrapper is included it completes the following steps:
 
 1. Replace the top of the stack with the current value of the `local` fact, if 
-it exists, then push a new role context onto the stack. The new context equals 
+it exists, then push a new role context onto the stack. The new context extends 
 the `input` variable if defined, defaulting to an empty dictionary.
 2. Set the `local` fact to the top of the stack.
 3. Include the role.
@@ -179,6 +188,18 @@ The following playbook demonstrates the use of the `call` role:
 ```
 
 The assertion succeeds.
+
+
+## A more robust solution
+
+The robust roles `robust_locally_scoped_outer` and 
+`robust_locally_scoped_nested` can be called without explicitly utilizing the
+a `call` role; `include_role` can be used directly. This is desirable because
+it should allow one to implement locally scoped role facts without changing the
+interface of existing roles, provided they are called using `include_role`.
+
+This comes at the cost of having to include a tiny bit of boilerplate in
+`tasks/main.yml` of these roles, and moving the actual tasks to a separate file.
 
 
 ## Pitfalls
