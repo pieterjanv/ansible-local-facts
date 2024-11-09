@@ -92,7 +92,7 @@ the wrapper is included it does the following five steps:
 
 1. Replace the top of the stack with the current value of the `local` fact, if 
 it exists, then push a new role context onto the stack. The new context equals 
-the `input` fact if defined, defaulting to an empty dictionary.
+the `input` variable if defined, defaulting to an empty dictionary.
 2. Set the `local` fact to the top of the stack.
 3. Include the role.
 4. Pop the context from the stack.
