@@ -20,8 +20,9 @@ ansible-playbook src/main.yml
 During configuration it is often useful to calculate values and store them as
 intermediate results; for efficiency, readability, or to avoid repetition. In
 Ansible, this can be done using `set_fact` or `register`, but the resulting
-variables are global and can be overwritten by other tasks. This can lead to
-unexpected behavior and bugs, especially in larger playbooks or roles.
+variables are written to the host vars for the current host which can be 
+overwritten by included roles. This can lead to unexpected behavior and bugs, 
+especially in larger playbooks or roles.
 
 One strategy to avoid this is to prefix every role-specific variable with
 the role name. This can be cumbersome and error-prone, especially when
