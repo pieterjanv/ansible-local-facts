@@ -1,0 +1,7 @@
+- pieterjanv.localscope.set:
+    updates:
+      call_args:
+        tasks_from: 'tasks'
+
+- ansible.builtin.include_role:
+    name: pieterjanv.localscope.call

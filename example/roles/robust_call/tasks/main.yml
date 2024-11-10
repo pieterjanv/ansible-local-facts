@@ -1,8 +1,18 @@
+- name: set call args
+  ansible.builtin.set_fact:
+    locally_scoped_roles_call_args: "{{ {
+      'name': (
+        ansible_parent_role_names[0] if ansible_parent_role_names is defined
+        else None
+      ),
+    } | combine(local.call_args | default({}), recursive=True) }}"
+
 - name: push to stack
   ansible.builtin.set_fact:
     locally_scoped_roles_stack: "{{ (
       (locally_scoped_roles_stack[:-1] + [
         local | default({}) | combine({
+          'role': None,
           'call_args': {},
         }),
       ])
@@ -12,20 +22,8 @@
       )
       else []
     ) + [input | default({}) | combine({
-      'callee': role | default(
-        ansible_parent_role_names[0] if ansible_parent_role_names is defined
-        else None
-      ),
+      'callee': locally_scoped_roles_call_args.name,
     })] }}"
-
-- name: set call args
-  ansible.builtin.set_fact:
-    locally_scoped_roles_call_args: "{{ {
-      'name': role | default(
-        ansible_parent_role_names[0] if ansible_parent_role_names is defined
-        else None
-      ),
-    } | combine(local.call_args | default({}), recursive=True) }}"
 
 - name: update local
   ansible.builtin.set_fact:

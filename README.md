@@ -1,9 +1,133 @@
-# Allow Ansible roles to scope facts locally
+# pieterjanv.localscope - Ansible collection that allows Ansible roles to scope facts locally
 
 
-This repository contains a simple proposal for providing Ansible roles with locally scoped variables.
+This repository contains an Ansible collection that enables providing roles
+with locally scoped facts, i.e. facts that are only available to the role that
+set them.
 
-It consists of three sets of roles:
+Additionally, this README
+[describes the problem and solution in more detail](#background).
+
+
+## Table of contents
+
+- [Installation](#installation)
+  - [From GitHub](#from-github)
+  - [Locally](#locally)
+- [Usage](#usage)
+- [Background](#background)
+  - [Motivation](#motivation)
+  - [Proof of concept solution](#proof-of-concept-solution)
+    - [Example of the solution](#example-of-the-solution)
+  - [On backwards compatibility](#on-backwards-compatibility)
+  - [Pitfalls](#pitfalls)
+
+
+## Installation
+
+At the moment the collection is not available on Ansible Galaxy, so it must be
+installed either from GitHub or locally.
+
+
+### From GitHub
+
+1. Add the following to your `requirements.yml`:
+
+```yaml
+collections:
+  - source: https://github.com/pieterjanv/ansible-local-facts
+    type: git
+    version: main # or a specific tag
+```
+
+2. Run the following command (to force an update, append the `--force` flag):
+
+```bash
+ansible-galaxy collection install -r requirements.yml
+```
+
+
+### Locally
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/pieterjanv/ansible-local-facts.git
+```
+
+2. Install the collection (to force an update, append the `--force` flag):
+
+```bash
+cd ansible-local-facts
+ansible-galaxy collection install .
+```
+
+
+## Usage
+
+The collection contains a single role called `call` that can be used to call
+arbitrary roles, providing them with a fact called `local` that is only
+visible to the role being called. Additionally, an action plugin called
+`set` is provided to set the `local` fact.
+
+Instead of calling the `call` role 
+directly, it is recommended to use a small amount of boilerplate in
+`tasks/main.yml` of the roles that should have locally scoped facts, because 
+this allows the roles to be called as usual.
+
+The boilerplate is as follows:
+
+```yaml
+--- # Path: roles/my_role/tasks/main.yml
+
+# Optionally, specify the file in the tasks folder that contains the tasks, as
+# well a any other `include_role` parameters. By default, `call` will include
+# `tasks/tasks.yml`. This default allows one to omit the `tasks_from` parameter
+# while preventing the infinite loop that would result if `tasks/main.yml` were
+# included directly.
+- pieterjanv.localscope.set:
+    updates:
+      call_args:
+        tasks_from: 'tasks'
+
+# Call on the `call` role to provide this role with a locally scoped `local`
+# fact.
+- ansible.builtin.include_role:
+    name: pieterjanv.localscope.call
+```
+
+Then, in the role's `tasks/tasks.yml` file, the `local` fact can be used as follows:
+
+```yaml
+--- # Path: roles/my_role/tasks/tasks.yml
+
+- name: Set some locally scoped facts
+  pieterjanv.localscope.set:
+    updates:
+      some_key: some value
+      another:
+        key: another value
+
+- name: Add one more value with recursive merging
+  pieterjanv.localscope.set:
+    updates:
+      another:
+        key2: yet another value
+    recursive: yes
+
+- name: include a nested role
+  ansible.builtin.include_role:
+    name: some_one.some_collection.some_role
+
+- name: Use the locally scoped facts knowing they have not been overwritten
+  debug:
+    msg: "{{ [local.some_key, local.another.key, local.another.key2] }}"
+```
+
+
+## Background
+
+In the `example` directory you can find three sets of roles:
 
 1. `naive_outer` and `naive_nested`, which demonstrate the problem of global scope. See [Motivation](#motivation).
 2. `call`, `locally_scoped_outer` and `locally_scoped_nested`, which demonstrate the proposed solution in its simplest and clearest form. See
@@ -12,19 +136,17 @@ It consists of three sets of roles:
 `robust_locally_scoped_nested`, which demonstrate a more robust version of the 
 solution. See [On backwards compatibility](#on-backwards-compatibility).
 
-Because the proposal has not been extensively tested, it is meant to invite discussion and feedback.
-
 Run the following commands to see the example in action:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip3 install -r requirements.txt
-ansible-playbook src/main.yml
+ansible-playbook example/main.yml
 ```
 
 
-## Motivation
+### Motivation
 
 During configuration it is often useful to calculate values and store them as
 intermediate results; for efficiency, readability, or to avoid repetition. In
@@ -41,7 +163,7 @@ Alternatively, we can try to limit the scope of intermediate variables to the
 role that created them.
 
 
-### Example of the problem
+#### Example of the problem
 
 Consider the setup of including a role that calculates a value and stores it,
 then including some role that happens to set the same fact before finishing
@@ -94,7 +216,7 @@ fatal: [localhost]: FAILED! => {
 The problem is that the `my_intermediate_result` fact is global and is overwritten by the nested role.
 
 
-## Proof of concept solution
+### Proof of concept solution
 
 The proposal in this repository is to call the role with a wrapper role around `include_role` called `call` that maintains a stack of dictionaries. Each time
 the wrapper is included it completes the following steps:
@@ -110,7 +232,7 @@ the `input` variable if defined, defaulting to an empty dictionary.
 The result is that the `local` fact can be used by the role to store intermediate results without the risk of it being overwritten by other roles.
 
 
-### Example of the solution
+#### Example of the solution
 
 The following playbook demonstrates the use of the `call` role:
 
@@ -188,7 +310,7 @@ The following playbook demonstrates the use of the `call` role:
 The assertion succeeds.
 
 
-## On backwards compatibility
+### On backwards compatibility
 
 For backwards compatibility and ease of use it is desirable to allow locally 
 scoped role facts without changing the way roles are consumed. This is 
@@ -200,7 +322,7 @@ This comes at the cost of having to include a tiny bit of boilerplate in
 `tasks/main.yml` of these roles, and moving the actual tasks to a separate file.
 
 
-## Pitfalls
+### Pitfalls
 
 Because the `local` fact is host-wide, there are still problems that can arise.
 

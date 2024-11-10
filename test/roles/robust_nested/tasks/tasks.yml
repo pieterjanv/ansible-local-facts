@@ -1,0 +1,9 @@
+- pieterjanv.localscope.set:
+    updates:
+      my_intermediate_result: nested
+
+- name: assert `local.my_intermediate_result` is now `'nested'`
+  ansible.builtin.assert:
+    that:
+      - local.my_intermediate_result == "nested"
+  ignore_errors: yes

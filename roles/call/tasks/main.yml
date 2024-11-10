@@ -1,0 +1,53 @@
+- name: set call args
+  ansible.builtin.set_fact:
+    locally_scoped_roles_call_args: "{{ {
+      'name': (
+        ansible_parent_role_names[0] if ansible_parent_role_names is defined
+        else None
+      ),
+    } | combine(local.call_args | default({}), recursive=True) }}"
+
+- name: push to stack
+  ansible.builtin.set_fact:
+    locally_scoped_roles_stack: "{{ (
+      (locally_scoped_roles_stack[:-1] + [
+        local | default({}) | combine({
+          'role': None,
+          'call_args': {},
+        }),
+      ])
+      if (
+        locally_scoped_roles_stack is defined and
+        locally_scoped_roles_stack | length > 0
+      )
+      else []
+    ) + [input | default({}) | combine({
+      'callee': locally_scoped_roles_call_args.name,
+    })] }}"
+
+- name: update local
+  ansible.builtin.set_fact:
+    local: "{{ locally_scoped_roles_stack[-1] }}"
+
+- ansible.builtin.include_role:
+    name: "{{ locally_scoped_roles_call_args.name }}"
+    allow_duplicates: "{{ locally_scoped_roles_call_args.allow_duplicates | default(true) }}"
+    defaults_from: "{{ locally_scoped_roles_call_args.defaults_from | default('main') }}"
+    handlers_from: "{{ locally_scoped_roles_call_args.handlers_from | default('main') }}"
+    public: "{{ locally_scoped_roles_call_args.public | default(false) }}"
+    rolespec_validate: "{{ locally_scoped_roles_call_args.rolespec_validate | default(true) }}"
+    tasks_from: "{{ locally_scoped_roles_call_args.tasks_from | default('tasks') }}"
+    vars_from: "{{ locally_scoped_roles_call_args.vars_from | default('main') }}"
+
+- name: pop from stack
+  ansible.builtin.set_fact:
+    locally_scoped_roles_stack: "{{ locally_scoped_roles_stack[:-1] }}"
+
+- name: update local
+  ansible.builtin.set_fact:
+    local: "{{
+      locally_scoped_roles_stack[-1] if (
+        locally_scoped_roles_stack is defined and
+        locally_scoped_roles_stack | length > 0
+      ) else {}
+    }}"

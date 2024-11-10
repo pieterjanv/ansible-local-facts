@@ -1,0 +1,26 @@
+- name: Run tests
+  hosts: localhost
+  gather_facts: no
+
+  roles:
+    - role: roles/robust_outer
+
+  tasks:
+
+    - name: Import role robust_outer
+      ansible.builtin.import_role:
+        name: roles/robust_outer
+
+    - name: Include role robust_outer
+      ansible.builtin.include_role:
+        name: roles/robust_outer
+
+    - name: Set call args for explicit call of robust_outer
+      pieterjanv.localscope.set:
+        updates:
+          call_args:
+            name: 'robust_outer'
+
+    - name: Include role using the call role
+      ansible.builtin.include_role:
+        name: roles/robust_outer
