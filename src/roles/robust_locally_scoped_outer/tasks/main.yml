@@ -1,9 +1,9 @@
-# Any default arguments to include_role for this role must be set on `local`.
-# 'tasks_from=tasks.yml' is implied, but added here for clarity
+# Any default arguments to include_role within `robust_call` must be set on
+# `local.call_args`.
 - ansible.builtin.set_fact:
-    local: "{{ {
+    local: "{{ { 'call_args': {
       'tasks_from': 'tasks',
-    } | combine(local | default({}), recursive=True) }}"
+    } } | combine(local | default({})) }}"
 
 - ansible.builtin.include_role:
     name: roles/robust_call
