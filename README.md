@@ -190,11 +190,11 @@ The assertion succeeds.
 
 ## A more robust solution
 
-The roles `robust_locally_scoped_outer` and 
-`robust_locally_scoped_nested` can be called without explicitly utilizing the
-a `call` role; `include_role`, `import_role` and the `roles` keyword can be 
-used directly. This is desirable because it should allow one to implement 
-locally scoped role facts without changing the interface of existing roles.
+For backwards compatibility and ease of use it is desirable to allow locally 
+scoped role facts without changing the way roles are consumed. This is 
+demonstrated by the roles `robust_locally_scoped_outer` and 
+`robust_locally_scoped_nested`, which can be called without explicitly 
+utilizing the `call` role; `include_role`, `import_role` and the `roles` keyword can be used directly.
 
 This comes at the cost of having to include a tiny bit of boilerplate in
 `tasks/main.yml` of these roles, and moving the actual tasks to a separate file.
