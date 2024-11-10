@@ -10,7 +10,7 @@ It consists of three sets of roles:
 [Proof of concept solution](#proof-of-concept-solution).
 3. `robust_call`, `robust_locally_scoped_outer` and 
 `robust_locally_scoped_nested`, which demonstrate a more robust version of the 
-solution. See [A more robust solution](#a-more-robust-solution).
+solution. See [On backwards compatibility](#on-backwards-compatibility).
 
 Because the proposal has not been extensively tested, it is meant to invite discussion and feedback.
 
@@ -188,7 +188,7 @@ The following playbook demonstrates the use of the `call` role:
 The assertion succeeds.
 
 
-## A more robust solution
+## On backwards compatibility
 
 For backwards compatibility and ease of use it is desirable to allow locally 
 scoped role facts without changing the way roles are consumed. This is 
