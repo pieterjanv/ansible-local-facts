@@ -152,7 +152,7 @@ The following playbook demonstrates the use of the `call` role:
   ansible.builtin.set_fact:
     local: "{{
       my_stack[-1] if my_stack is defined and my_stack | length > 0
-      else None
+      else {}
     }}"
 
 
