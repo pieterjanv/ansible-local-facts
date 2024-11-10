@@ -159,11 +159,10 @@ The following playbook demonstrates the use of the `call` role:
 --- # Path: roles/locally_scoped_outer/tasks/main.yml
 
 - name: set a fact under a generic name
-  ansible.utils.update_fact:
-    updates:
-      - path: my_intermediate_result
-        value: "outer"
-  register: local
+  ansible.builtin.set_fact:
+    local: "{{ local | combine({
+      'my_intermediate_result': 'outer',
+    }) }}"
 
 - name: include a nested role
   ansible.builtin.include_role:
@@ -180,11 +179,10 @@ The following playbook demonstrates the use of the `call` role:
 --- # Path: roles/locally_scoped_nested/tasks/main.yml
 
 - name: set a fact under a generic name
-  ansible.utils.update_fact:
-    updates:
-      - path: my_intermediate_result
-        value: nested
-  register: local
+  ansible.builtin.set_fact:
+    local: "{{ local | combine({
+      'my_intermediate_result': 'nested',
+    }) }}"
 ```
 
 The assertion succeeds.
