@@ -194,9 +194,9 @@ The assertion succeeds.
 
 The robust roles `robust_locally_scoped_outer` and 
 `robust_locally_scoped_nested` can be called without explicitly utilizing the
-a `call` role; `include_role` can be used directly. This is desirable because
-it should allow one to implement locally scoped role facts without changing the
-interface of existing roles, provided they are called using `include_role`.
+a `call` role; `include_role`, `import_role` and the `roles` keyword can be 
+used directly. This is desirable because it should allow one to implement 
+locally scoped role facts without changing the interface of existing roles.
 
 This comes at the cost of having to include a tiny bit of boilerplate in
 `tasks/main.yml` of these roles, and moving the actual tasks to a separate file.

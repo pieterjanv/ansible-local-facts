@@ -1,9 +1,8 @@
 - name: set a fact under a generic name
-  ansible.utils.update_fact:
-    updates:
-      - path: my_intermediate_result
-        value: nested
-  register: local
+  ansible.builtin.set_fact:
+    local: "{{ local | combine({
+      'my_intermediate_result': 'nested',
+    }) }}"
 
 - ansible.builtin.debug:
     var: local
