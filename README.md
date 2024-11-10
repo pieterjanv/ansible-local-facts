@@ -3,7 +3,7 @@
 
 This repository contains a simple proposal for providing Ansible roles with locally scoped variables.
 
-It consists of a three sets of roles:
+It consists of three sets of roles:
 
 1. `naive_outer` and `naive_nested`, which demonstrate the problem of global scope. See [Motivation](#motivation).
 2. `call`, `locally_scoped_outer` and `locally_scoped_nested`, which demonstrate the proposed solution in its simplest and clearest form. See
@@ -190,7 +190,7 @@ The assertion succeeds.
 
 ## A more robust solution
 
-The robust roles `robust_locally_scoped_outer` and 
+The roles `robust_locally_scoped_outer` and 
 `robust_locally_scoped_nested` can be called without explicitly utilizing the
 a `call` role; `include_role`, `import_role` and the `roles` keyword can be 
 used directly. This is desirable because it should allow one to implement 
