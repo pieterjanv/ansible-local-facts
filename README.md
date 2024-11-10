@@ -2,8 +2,11 @@
 
 
 This repository contains an Ansible collection that enables providing roles
-with locally scoped facts, i.e. facts that are only available to the role that
+with locally scoped facts, i.e. facts that are only visible to the role that
 set them.
+
+This aims to solve the problem of global scope in Ansible roles, 
+where intermediate results can be overwritten by included roles.
 
 
 ## Table of contents
@@ -78,10 +81,10 @@ The boilerplate is as follows:
 --- # Path: roles/my_role/tasks/main.yml
 
 # Optionally, specify the file in the tasks folder that contains the tasks, as
-# well a any other `include_role` parameters. By default, `call` will include
+# well as any other `include_role` parameters. By default, `call` will include
 # `tasks/tasks.yml`. This default allows one to omit the `tasks_from` parameter
 # while preventing the infinite loop that would result if `tasks/main.yml` were
-# included directly.
+# included instead.
 - pieterjanv.localscope.set:
     updates:
       call_args:
