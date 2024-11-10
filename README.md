@@ -5,9 +5,6 @@ This repository contains an Ansible collection that enables providing roles
 with locally scoped facts, i.e. facts that are only available to the role that
 set them.
 
-Additionally, this README
-[describes the problem and solution in more detail](#background).
-
 
 ## Table of contents
 
