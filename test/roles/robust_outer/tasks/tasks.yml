@@ -40,3 +40,15 @@
     that:
       - local.outer_key == 'value'
   ignore_errors: yes
+
+- name: include third party role
+  ansible.builtin.include_role:
+    name: pieterjanv.localscope.call
+  vars:
+    name: some_role
+
+- name: assert local scope is still available
+  ansible.builtin.assert:
+    that:
+      - local.my_intermediate_result == "outer"
+  ignore_errors: yes

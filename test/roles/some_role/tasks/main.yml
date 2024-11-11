@@ -1,0 +1,8 @@
+- ansible.builtin.set_fact:
+    local: some_role
+
+- name: assert `local` is now `'some_role'`
+  ansible.builtin.assert:
+    that:
+      - local == "some_role"
+  ignore_errors: yes

@@ -1,24 +1,18 @@
 - name: push to stack
   ansible.builtin.set_fact:
-    my_stack: "{{ (
-      my_stack[:-1] + [local] if my_stack is defined and my_stack | length > 0
-      else []
-    ) + [input | default({})] }}"
+    my_stack: "{{ my_stack | default([]) + [local | default({})] }}"
 
-- name: update local
+- name: initialize local
   ansible.builtin.set_fact:
-    local: "{{ my_stack[-1] }}"
+    local: "{{ input | default({}) }}"
 
 - ansible.builtin.include_role:
-    name: "{{ role }}"
+    name: "{{ name }}"
+
+- name: restore local
+  ansible.builtin.set_fact:
+    local: "{{ my_stack[-1] }}"
 
 - name: pop from stack
   ansible.builtin.set_fact:
     my_stack: "{{ my_stack[:-1] }}"
-
-- name: update local
-  ansible.builtin.set_fact:
-    local: "{{
-      my_stack[-1] if my_stack is defined and my_stack | length > 0
-      else {}
-    }}"

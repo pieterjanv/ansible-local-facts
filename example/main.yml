@@ -11,7 +11,7 @@
       ansible.builtin.include_role:
         name: roles/call
       vars:
-        role: roles/locally_scoped_outer
+        name: roles/locally_scoped_outer
 
     - name: Demonstrate a more robust version of local scope that does not need to be called by roles/call
       ansible.builtin.include_role:
@@ -22,5 +22,5 @@
           ansible.builtin.include_role:
             name: roles/call
           vars:
-            role: roles/locally_scoped_outer
+            name: roles/locally_scoped_outer
       when: local.my_intermediate_result is not defined

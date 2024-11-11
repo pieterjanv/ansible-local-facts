@@ -1,53 +1,55 @@
-- name: set call args
+- name: push to stack
   ansible.builtin.set_fact:
-    locally_scoped_roles_call_args: "{{ {
+    pieterjanv_localscope_stack: "{{
+      pieterjanv_localscope_stack | default([]) + [local | default({})]
+    }}"
+    pieterjanv_localscope_call_args: "{{ {
       'name': (
         ansible_parent_role_names[0] if ansible_parent_role_names is defined
         else None
       ),
-    } | combine(local.call_args | default({}), recursive=True) }}"
+    } | combine(local.call_args | default({}) | combin({
+    })) }}"
+    pieterjanv_localscope_call_args:
+      name: "{{ name | default(local.call_args.name | default(ansible_parent_role_names[0])) }}"
+      allow_duplicates: "{{ allow_duplicates | default(local.call_args.allow_duplicates | default(true)) }}"
+      defaults_from: "{{ defaults_from | default(local.call_args.defaults_from | default('main')) }}"
+      handlers_from: "{{ handlers_from | default(local.call_args.handlers_from | default('main')) }}"
+      public: "{{ public | default(local.call_args.public | default(false)) }}"
+      rolespec_validate: "{{ rolespec_validate | default(local.call_args.rolespec_validate | default(true)) }}"
+      tasks_from: "{{ tasks_from | default(local.call_args.tasks_from | default('tasks' if name is not defined else 'main')) }}"
+      vars_from: "{{ vars_from | default(local.call_args.vars_from | default('main')) }}"
 
-- name: push to stack
+- name: initialize local
   ansible.builtin.set_fact:
-    locally_scoped_roles_stack: "{{ (
-      (locally_scoped_roles_stack[:-1] + [
-        local | default({}) | combine({
-          'role': None,
-          'call_args': {},
-        }),
-      ])
-      if (
-        locally_scoped_roles_stack is defined and
-        locally_scoped_roles_stack | length > 0
-      )
-      else []
-    ) + [input | default({}) | combine({
-      'callee': locally_scoped_roles_call_args.name,
-    })] }}"
-
-- name: update local
-  ansible.builtin.set_fact:
-    local: "{{ locally_scoped_roles_stack[-1] }}"
+    local: "{{ input | default({}) | combine({
+      'callee': name | default(ansible_parent_role_names[0]),
+    }) }}"
 
 - ansible.builtin.include_role:
-    name: "{{ locally_scoped_roles_call_args.name }}"
-    allow_duplicates: "{{ locally_scoped_roles_call_args.allow_duplicates | default(true) }}"
-    defaults_from: "{{ locally_scoped_roles_call_args.defaults_from | default('main') }}"
-    handlers_from: "{{ locally_scoped_roles_call_args.handlers_from | default('main') }}"
-    public: "{{ locally_scoped_roles_call_args.public | default(false) }}"
-    rolespec_validate: "{{ locally_scoped_roles_call_args.rolespec_validate | default(true) }}"
-    tasks_from: "{{ locally_scoped_roles_call_args.tasks_from | default('tasks') }}"
-    vars_from: "{{ locally_scoped_roles_call_args.vars_from | default('main') }}"
+    name: "{{ pieterjanv_localscope_call_args.name }}"
+    allow_duplicates: "{{ pieterjanv_localscope_call_args.allow_duplicates }}"
+    defaults_from: "{{ pieterjanv_localscope_call_args.defaults_from }}"
+    handlers_from: "{{ pieterjanv_localscope_call_args.handlers_from }}"
+    public: "{{ pieterjanv_localscope_call_args.public }}"
+    rolespec_validate: "{{ pieterjanv_localscope_call_args.rolespec_validate }}"
+    tasks_from: "{{ pieterjanv_localscope_call_args.tasks_from }}"
+    vars_from: "{{ pieterjanv_localscope_call_args.vars_from }}"
+  vars:
+    name: "{{ undef() }}"
+    allow_duplicates: "{{ undef() }}"
+    defaults_from: "{{ undef() }}"
+    handlers_from: "{{ undef() }}"
+    public: "{{ undef() }}"
+    rolespec_validate: "{{ undef() }}"
+    tasks_from: "{{ undef() }}"
+    vars_from: "{{ undef() }}"
+    input: "{{ undef() }}"
 
+- name: restore local
+  ansible.builtin.set_fact:
+    local: "{{ pieterjanv_localscope_stack[-1] }}"
+  
 - name: pop from stack
   ansible.builtin.set_fact:
-    locally_scoped_roles_stack: "{{ locally_scoped_roles_stack[:-1] }}"
-
-- name: update local
-  ansible.builtin.set_fact:
-    local: "{{
-      locally_scoped_roles_stack[-1] if (
-        locally_scoped_roles_stack is defined and
-        locally_scoped_roles_stack | length > 0
-      ) else {}
-    }}"
+    pieterjanv_localscope_stack: "{{ pieterjanv_localscope_stack[:-1] }}"

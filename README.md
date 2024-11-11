@@ -80,18 +80,14 @@ The boilerplate is as follows:
 ```yaml
 --- # Path: roles/my_role/tasks/main.yml
 
+# Call on the `call` role to provide this role with a locally scoped `local` fact.
 # Optionally, specify the file in the tasks folder that contains the tasks, as
-# well as any other `include_role` parameters. By default, `call` will include
-# `tasks/tasks.yml`. This default allows one to omit the `tasks_from` parameter
-# while preventing the infinite loop that would result if `tasks/main.yml` were
-# included instead.
-- pieterjanv.localscope.set:
-    updates:
-      call_args:
-        tasks_from: 'tasks'
-
-# Call on the `call` role to provide this role with a locally scoped `local`
-# fact.
+# well as any other `include_role` parameters.
+# By default, `call` will include `tasks/tasks` if included without `vars.name`,
+# and `tasks/main` if called with `vars.name`.
+# This default allows one to omit the `tasks_from` parameter while preventing
+# the infinite loop that would result if `tasks/main.yml` were included in the
+# case of leaving `vars.name` unspecified.
 - ansible.builtin.include_role:
     name: pieterjanv.localscope.call
 ```
@@ -115,21 +111,15 @@ Then, in the role's `tasks/tasks.yml` file, the `local` fact can be used as foll
         key2: yet another value
     recursive: yes
 
-# When calling a role that may or may not use locally scoped facts,
-# we have to wrap call it with the `call` role to be sure that our facts remain local.
-# This requires setting the call args on the `local` fact, which are the same as those
-# on `include_role`.
-- name: Setup call to nested third party role
-  pieterjanv.localscope.set:
-    updates:
-      call_args:
-        name: some_one.some_collection.some_role
-        tasks_from: main
-
-# Now call the role through the `call` role
+# When calling a role that may or may not use locally scoped facts, we have
+# to wrap call it with the `call` role to ensure that our facts remain local.
+# To wrap a role with the `call` role, set the parameters as you would set them
+# on `include_role`, but under `vars` instead.
 - name: Include a nested role
   ansible.builtin.include_role:
     name: pieterjanv.localscope.call
+  vars:
+    name: some_one.some_collection.some_role
 
 - name: Use the locally scoped facts knowing they have not been overwritten
   debug:
@@ -230,16 +220,15 @@ The problem is that the `my_intermediate_result` fact is global and is overwritt
 
 ### Proof of concept solution
 
-The proposal in this repository is to call the role with a wrapper role around `include_role` called `call` that maintains a stack of dictionaries. Each time
-the wrapper is included it completes the following steps:
+The proposal in this repository is to call the role with awrapper role around `include_role` called `call` that 
+maintains a stack of dictionaries. Each time the wrapper is included it completes the following steps:
 
-1. Replace the top of the stack with the current value of the `local` fact, if 
-it exists, then push a new role context onto the stack. The new context extends 
-the `input` variable if defined, defaulting to an empty dictionary.
-2. Set the `local` fact to the top of the stack.
+1. Push the current value of the `local` fact, defaulting to an empty dictionary
+in the case of the first usage of `call`
+2. Initialize the `local` fact for the called role to the `input` variable if defined, empty otherwise.
 3. Include the role.
-4. Pop the context from the stack.
-5. Reset the `local` fact to the top of the stack.
+4. Restore the `local` fact to the top of the stack.
+5. Pop the stack.
 
 The result is that the `local` fact can be used by the role to store intermediate results without the risk of it being overwritten by other roles.
 
@@ -259,35 +248,29 @@ The following playbook demonstrates the use of the `call` role:
     - ansible.builtin.include_role:
         name: roles/call
       vars:
-        role: roles/locally_scoped_outer
+        name: roles/locally_scoped_outer
 
 
 --- # Path: roles/call/tasks/main.yml
 
 - name: push to stack
   ansible.builtin.set_fact:
-    my_stack: "{{ (
-      my_stack[:-1] + [local] if my_stack is defined and my_stack | length > 0
-      else []
-    ) + [input | default({})] }}"
+    my_stack: "{{ my_stack | default([]) + [local | default({})] }}"
 
-- name: update local
+- name: initialize local
   ansible.builtin.set_fact:
-    local: "{{ my_stack[-1] }}"
+    local: "{{ input | default({}) }}"
 
 - ansible.builtin.include_role:
-    name: "{{ role }}"
+    name: "{{ name }}"
+
+- name: restore local
+  ansible.builtin.set_fact:
+    local: "{{ my_stack[-1] }}"
 
 - name: pop from stack
   ansible.builtin.set_fact:
     my_stack: "{{ my_stack[:-1] }}"
-
-- name: update local
-  ansible.builtin.set_fact:
-    local: "{{
-      my_stack[-1] if my_stack is defined and my_stack | length > 0
-      else {}
-    }}"
 
 
 --- # Path: roles/locally_scoped_outer/tasks/main.yml
@@ -302,7 +285,7 @@ The following playbook demonstrates the use of the `call` role:
   ansible.builtin.include_role:
     name: roles/call
   vars:
-    role: roles/locally_scoped_nested
+    name: roles/locally_scoped_nested
 
 - name: assert the fact is what we want
   ansible.builtin.assert:
@@ -328,7 +311,8 @@ For backwards compatibility and ease of use it is desirable to allow locally
 scoped role facts without changing the way roles are consumed. This is 
 demonstrated by the roles `robust_locally_scoped_outer` and 
 `robust_locally_scoped_nested`, which can be called without explicitly 
-utilizing the `call` role; `include_role`, `import_role` and the `roles` keyword can be used directly.
+utilizing the `call` role; `include_role`, `import_role` and the `roles`
+keyword can be used directly.
 
 This comes at the cost of having to include a tiny bit of boilerplate in
 `tasks/main.yml` of these roles, and moving the actual tasks to a separate file.
@@ -352,7 +336,7 @@ I've already run into the following:
         - ansible.builtin.include_role:
             name: roles/call
           vars:
-            role: roles/locally_scoped_outer
+            name: roles/locally_scoped_outer
       when: local.my_intermediate_result is not defined
 ```
 

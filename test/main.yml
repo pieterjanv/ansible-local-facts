@@ -14,13 +14,12 @@
     - name: Include role robust_outer
       ansible.builtin.include_role:
         name: roles/robust_outer
-
-    - name: Set call args for explicit call of robust_outer
-      pieterjanv.localscope.set:
-        updates:
-          call_args:
-            name: 'robust_outer'
+      vars:
+        input:
+          name: test
 
     - name: Include role using the call role
       ansible.builtin.include_role:
+        name: pieterjanv.localscope.call
+      vars:
         name: roles/robust_outer
