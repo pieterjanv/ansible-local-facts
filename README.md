@@ -115,9 +115,21 @@ Then, in the role's `tasks/tasks.yml` file, the `local` fact can be used as foll
         key2: yet another value
     recursive: yes
 
-- name: include a nested role
+# When calling a role that may or may not use locally scoped facts,
+# we have to wrap call it with the `call` role to be sure that our facts remain local.
+# This requires setting the call args on the `local` fact, which are the same as those
+# on `include_role`.
+- name: Setup call to nested role
+  pieterjanv.localscope.set:
+    updates:
+      call_args:
+        name: some_one.some_collection.some_role
+        tasks_from: main
+
+# Now call the role through our `call` role
+- name: Include a nested role
   ansible.builtin.include_role:
-    name: some_one.some_collection.some_role
+    name: pieterjanv.localscope.call
 
 - name: Use the locally scoped facts knowing they have not been overwritten
   debug:
