@@ -1,3 +1,13 @@
+- name: dump target
+  ansible.builtin.debug:
+    var: target
+
+- name: assert standard variable `some_var` is `'some_value'`
+  ansible.builtin.assert:
+    that:
+      - some_var == "some_value"
+  ignore_errors: yes
+
 - ansible.builtin.set_fact:
     local: some_role
 

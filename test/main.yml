@@ -22,4 +22,34 @@
       ansible.builtin.include_role:
         name: pieterjanv.localscope.call
       vars:
-        name: roles/robust_outer
+        target:
+          name: roles/robust_outer
+
+    - name: Include role using the call role; tasks from main
+      ansible.builtin.include_role:
+        name: pieterjanv.localscope.call
+      vars:
+        target:
+          name: roles/robust_outer
+          tasks_from: main
+        input:
+          name: test
+
+    - name: Include role using the call role; tasks from tasks
+      ansible.builtin.include_role:
+        name: pieterjanv.localscope.call
+      vars:
+        target:
+          name: roles/robust_outer
+          tasks_from: tasks
+        input:
+          name: test
+
+    - name: Include role using the call role; test target var can be passed
+      ansible.builtin.include_role:
+        name: pieterjanv.localscope.call
+      vars:
+        target:
+          name: roles/robust_outer
+          tasks_from: tasks
+          target: target_test

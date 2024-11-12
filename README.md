@@ -80,14 +80,15 @@ The boilerplate is as follows:
 ```yaml
 --- # Path: roles/my_role/tasks/main.yml
 
-# Call on the `call` role to provide this role with a locally scoped `local` fact.
+# Call on the `call` role to provide this role with a locally scoped `local` 
+# fact.
 # Optionally, specify the file in the tasks folder that contains the tasks, as
-# well as any other `include_role` parameters.
-# By default, `call` will include `tasks/tasks` if included without `vars.name`,
-# and `tasks/main` if called with `vars.name`.
+# well as any other `include_role` parameters, under the `vars.target` key.
+# By default, `call` will include `tasks/tasks` if included without
+# `vars.target.name`, and `tasks/main` if called with `vars.target.name`.
 # This default allows one to omit the `tasks_from` parameter while preventing
 # the infinite loop that would result if `tasks/main.yml` were included in the
-# case of leaving `vars.name` unspecified.
+# case of leaving `vars.target.name` unspecified.
 - ansible.builtin.include_role:
     name: pieterjanv.localscope.call
 ```
@@ -112,14 +113,21 @@ Then, in the role's `tasks/tasks.yml` file, the `local` fact can be used as foll
     recursive: yes
 
 # When calling a role that may or may not use locally scoped facts, we have
-# to wrap call it with the `call` role to ensure that our facts remain local.
+# to wrap it with the `call` role to ensure that our facts remain local.
 # To wrap a role with the `call` role, set the parameters as you would set them
-# on `include_role`, but under `vars` instead.
+# on `include_role`, but under `vars.target` instead.
+# The values under the `vars.input` key are set on `local` in the called role.
+# Pass ordinary arguments to the role as you would normally, except for the
+# for the parameters named `target` and `input`. As these have special meaning, # they can be set at `vars.target.target` and `vars.target.input`, respectively.
 - name: Include a nested role
   ansible.builtin.include_role:
     name: pieterjanv.localscope.call
   vars:
-    name: some_one.some_collection.some_role
+    target:
+      name: some_one.some_collection.some_role
+    input:
+      some_local_var: some value
+    some_ordinary_var: some other value
 
 - name: Use the locally scoped facts knowing they have not been overwritten
   debug:
