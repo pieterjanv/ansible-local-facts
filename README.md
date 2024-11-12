@@ -118,7 +118,8 @@ Then, in the role's `tasks/tasks.yml` file, the `local` fact can be used as foll
 # on `include_role`, but under `vars.target` instead.
 # The values under the `vars.input` key are set on `local` in the called role.
 # Pass ordinary arguments to the role as you would normally, except for the
-# for the parameters named `target` and `input`. As these have special meaning, # they can be set at `vars.target.target` and `vars.target.input`, respectively.
+# for the parameters named `target` and `input`. As these have special meaning, 
+# they can be set at `vars.target.target` and `vars.target.input`, respectively.
 - name: Include a nested role
   ansible.builtin.include_role:
     name: pieterjanv.localscope.call
