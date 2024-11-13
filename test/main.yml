@@ -53,3 +53,12 @@
           name: roles/robust_outer
           tasks_from: tasks
           target: target_test
+
+    - name: test for backwards compatibility
+      pieterjanv.localscope.set:
+        updates:
+          call_args:
+            name: roles/robust_outer
+            tasks_from: tasks
+    - include_role:
+        name: pieterjanv.localscope.call
