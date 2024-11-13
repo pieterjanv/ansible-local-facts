@@ -70,6 +70,10 @@ arbitrary roles, providing them with a fact called `local` that is only
 visible to the role being called. Additionally, an action plugin called
 `set` is provided to set the `local` fact.
 
+The api of `pieterjanv.localscope.call` differs from the proof of concept 
+solution later in this document. Study the comments in the next example
+to understand how to use the `call` role.
+
 Instead of calling the `call` role 
 directly, it is recommended to use a small amount of boilerplate in
 `tasks/main.yml` of the roles that should have locally scoped facts, because 
@@ -98,6 +102,10 @@ Then, in the role's `tasks/tasks.yml` file, the `local` fact can be used as foll
 ```yaml
 --- # Path: roles/my_role/tasks/tasks.yml
 
+- name: Any values passed to this role under `input` are available at `local.input`
+  ansible.builtin.debug:
+    var: local.input.my_parameter
+
 - name: Set some locally scoped facts
   pieterjanv.localscope.set:
     updates:
@@ -116,7 +124,8 @@ Then, in the role's `tasks/tasks.yml` file, the `local` fact can be used as foll
 # to wrap it with the `call` role to ensure that our facts remain local.
 # To wrap a role with the `call` role, set the parameters as you would set them
 # on `include_role`, but under `vars.target` instead.
-# The values under the `vars.input` key are set on `local` in the called role.
+# The values under the `vars.input` key are set on `local.input` in the called 
+# role.
 # Pass ordinary arguments to the role as you would normally, except for the
 # for the parameters named `target` and `input`. As these have special meaning, 
 # they can be set at `vars.target.target` and `vars.target.input`, respectively.
@@ -132,7 +141,12 @@ Then, in the role's `tasks/tasks.yml` file, the `local` fact can be used as foll
 
 - name: Use the locally scoped facts knowing they have not been overwritten
   debug:
-    msg: "{{ [local.some_key, local.another.key, local.another.key2] }}"
+    msg: "{{ [
+      local.input.some_parameter,
+      local.some_key,
+      local.another.key,
+      local.another.key2,
+    ] }}"
 ```
 
 

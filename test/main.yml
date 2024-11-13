@@ -4,12 +4,18 @@
 
   roles:
     - role: roles/robust_outer
+      vars:
+        input:
+          name: test
 
   tasks:
 
     - name: Import role robust_outer
       ansible.builtin.import_role:
         name: roles/robust_outer
+      vars:
+        input:
+          name: test
 
     - name: Include role robust_outer
       ansible.builtin.include_role:
@@ -24,6 +30,8 @@
       vars:
         target:
           name: roles/robust_outer
+        input:
+          name: test
 
     - name: Include role using the call role; tasks from main
       ansible.builtin.include_role:
@@ -53,6 +61,8 @@
           name: roles/robust_outer
           tasks_from: tasks
           target: target_test
+        input:
+          name: test
 
     - name: test for backwards compatibility
       pieterjanv.localscope.set:
@@ -62,3 +72,6 @@
             tasks_from: tasks
     - include_role:
         name: pieterjanv.localscope.call
+      vars:
+        input:
+          name: test

@@ -1,3 +1,8 @@
+- name: assert `local.input.name` is `'test'`
+  ansible.builtin.assert:
+    that:
+      - local.input.name == 'test'
+
 - name: set some local facts
   pieterjanv.localscope.set:
     updates:
@@ -9,12 +14,19 @@
 - name: include a nested role
   ansible.builtin.include_role:
     name: roles/robust_nested
+  vars:
+    input:
+      name: "other_test"
+
+- name: assert `local.input.name` is still `'test'`
+  ansible.builtin.assert:
+    that:
+      - local.input.name == 'test'
 
 - name: assert `local.my_intermediate_result` is still available
   ansible.builtin.assert:
     that:
       - local.my_intermediate_result == "outer"
-  ignore_errors: yes
 
 - name: set some local facts recursively
   pieterjanv.localscope.set:
@@ -28,7 +40,6 @@
   ansible.builtin.assert:
     that:
       - local.some.nested.key == 'value' and local.some.nested.other_key == 'other_value'
-  ignore_errors: yes
 
 - name: set some templated local facts
   pieterjanv.localscope.set:
@@ -39,7 +50,6 @@
   ansible.builtin.assert:
     that:
       - local.outer_key == 'value'
-  ignore_errors: yes
 
 - name: include third party role
   ansible.builtin.include_role:
@@ -54,4 +64,3 @@
   ansible.builtin.assert:
     that:
       - local.my_intermediate_result == "outer"
-  ignore_errors: yes

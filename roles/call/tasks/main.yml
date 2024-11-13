@@ -11,7 +11,11 @@
   ansible.builtin.set_fact:
     pieterjanv_localscope_stack: "{{
       (pieterjanv_localscope_stack | default([None]))[:-1] + [local | default({})] + [
-        input | default({}) | combine({
+        (
+          { 'input': input } if input is defined else
+          { 'input': local.input } if target.name is not defined and local.call_args.name is not defined and local.input is defined else
+          {}
+        ) | combine({
           'callee': target.name | default(local.call_args.name | default(ansible_parent_role_names[0])),
           '_': (
             (

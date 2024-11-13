@@ -1,3 +1,8 @@
+- name: assert `local.input.name` is `'other_test'`
+  ansible.builtin.assert:
+    that:
+      - local.input.name == 'other_test'
+
 - pieterjanv.localscope.set:
     updates:
       my_intermediate_result: nested
@@ -6,4 +11,3 @@
   ansible.builtin.assert:
     that:
       - local.my_intermediate_result == "nested"
-  ignore_errors: yes
