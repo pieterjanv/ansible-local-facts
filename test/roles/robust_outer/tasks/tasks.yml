@@ -65,3 +65,7 @@
   ansible.builtin.assert:
     that:
       - local.my_intermediate_result == "outer"
+
+- name: return `some.nested.key` as a fact
+  pieterjanv.localscope.return:
+    key: "{{ local.some.nested.key }}"

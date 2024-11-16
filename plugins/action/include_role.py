@@ -102,7 +102,8 @@ class ActionModule(ActionBase):
                             'pieterjanv_localscope_stack': (
                                 pieterjanv_localscope_stack +
                                 [old_local]
-                            )
+                            ),
+                            'pieterjanv_localscope_output': {},
                         },
                     },
                     {
@@ -137,7 +138,6 @@ class ActionModule(ActionBase):
 
         inventory = InventoryManager(self._task._parent._loader)
         inventory.add_host(task_vars['inventory_hostname'])
-        result = {'changed': False}
 
         tqm = None
         try:
@@ -153,15 +153,15 @@ class ActionModule(ActionBase):
             tqm.run(play)
         except Exception as e:
             display.error(f"Error running TaskQueueManager: {e}")
-            result = {'failed': True, 'msg': str(e)}
+            return { 'changed': False, 'failed': True, 'msg': str(e)}
         finally:
             if tqm:
                 tqm.cleanup()
 
-
-        final_result = super(ActionModule, self).run(tmp, task_vars)
-        final_result.update(result)
-        return final_result
+        return task_vars.get('hostvars', {}).get(
+            task_vars.get('inventory_hostname'),
+            {},
+        ).get('pieterjanv_localscope_output', {})
     
     def get_include_role_arg(self, name):
         return self.args.get(

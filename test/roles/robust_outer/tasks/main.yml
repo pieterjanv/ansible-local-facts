@@ -1,1 +1,4 @@
 - pieterjanv.localscope.include_role:
+  register: outer_result
+
+- pieterjanv.localscope.return: "{{ outer_result }}"

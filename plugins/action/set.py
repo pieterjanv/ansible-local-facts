@@ -37,7 +37,7 @@ class ActionModule(ActionBase):
         hostvars = task_vars.get('hostvars', {}).get(task_vars.get('inventory_hostname', None), None)
         if hostvars is None:
             raise Exception('hostvars not found')
-        return self._update(hostvars.get(self._task.register, {}), updates, recursive)
+        return self._update(hostvars.get(self._task._register, {}), updates, recursive)
 
     def _update(self, target, updates, recursive):
         ''' Apply updates to the target '''
@@ -46,6 +46,5 @@ class ActionModule(ActionBase):
             if recursive and isinstance(value, dict):
                 target[templated_key] = self._update(target.get(key, {}), value, recursive)
             else:
-                display.vvvv('Setting %s to %s on %s' % (templated_key, value, target))
                 target[templated_key] = self._templar.template(value)
         return target

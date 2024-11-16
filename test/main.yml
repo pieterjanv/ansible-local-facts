@@ -11,6 +11,11 @@
 
   tasks:
 
+    - name: assert `outer_result.key` is `'value'`
+      ansible.builtin.assert:
+        that:
+          - outer_result.key == 'value'
+
     - name: Import role robust_outer
       ansible.builtin.import_role:
         name: roles/robust_outer
@@ -30,6 +35,12 @@
         name: roles/robust_outer
         input:
           name: test
+      register: my_result
+
+    - name: assert `my_result.key` is `'value'`
+      ansible.builtin.assert:
+        that:
+          - my_result.key == 'value'
 
     - name: Include role using pieterjanv.localscope.include_role, tasks from main
       pieterjanv.localscope.include_role:
