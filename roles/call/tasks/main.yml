@@ -7,62 +7,13 @@
     ansible_parent_role_names[0] is not defined
   )"
 
-- name: push to stack
-  ansible.builtin.set_fact:
-    pieterjanv_localscope_stack: "{{
-      (pieterjanv_localscope_stack | default([None]))[:-1] + [local | default({})] + [
-        (
-          { 'input': input } if input is defined else
-          { 'input': local.input } if target.name is not defined and local.call_args.name is not defined and local.input is defined else
-          {}
-        ) | combine({
-          'callee': target.name | default(local.call_args.name | default(ansible_parent_role_names[0])),
-          '_': (
-            (
-              { 'target': target.target } if target.target is defined else
-              { 'target': local._.target } if local._.target is defined else
-              {}
-            ) |
-            combine(
-              { 'input': target.input } if target.input is defined else
-              { 'input': local._.input } if local._.input is defined else
-              {}
-            )
-          )
-        })
-      ]  
-    }}"
-    pieterjanv_localscope_call_args:
-      name: "{{ target.name | default(local.call_args.name | default(ansible_parent_role_names[0])) }}"
-      allow_duplicates: "{{ target.allow_duplicates | default(local.call_args.allow_duplicates | default(true)) }}"
-      defaults_from: "{{ target.defaults_from | default(local.call_args.defaults_from | default('main')) }}"
-      handlers_from: "{{ target.handlers_from | default(local.call_args.handlers_from | default('main')) }}"
-      public: "{{ target.public | default(local.call_args.public | default(false)) }}"
-      rolespec_validate: "{{ target.rolespec_validate | default(local.call_args.rolespec_validate | default(true)) }}"
-      tasks_from: "{{ target.tasks_from | default(local.call_args.tasks_from | default('tasks' if target.name is not defined else 'main')) }}"
-      vars_from: "{{ target.vars_from | default(local.call_args.vars_from | default('main')) }}"
-
-- name: initialize local
-  ansible.builtin.set_fact:
-    local: "{{ pieterjanv_localscope_stack[-1] }}"
-
-- ansible.builtin.include_role:
-    name: "{{ pieterjanv_localscope_call_args.name }}"
-    allow_duplicates: "{{ pieterjanv_localscope_call_args.allow_duplicates }}"
-    defaults_from: "{{ pieterjanv_localscope_call_args.defaults_from }}"
-    handlers_from: "{{ pieterjanv_localscope_call_args.handlers_from }}"
-    public: "{{ pieterjanv_localscope_call_args.public }}"
-    rolespec_validate: "{{ pieterjanv_localscope_call_args.rolespec_validate }}"
-    tasks_from: "{{ pieterjanv_localscope_call_args.tasks_from }}"
-    vars_from: "{{ pieterjanv_localscope_call_args.vars_from }}"
-  vars:
-    target: "{{ local._.target | default(undef()) }}"
-    input: "{{ local._.input | default(undef()) }}"
-
-- name: pop from stack
-  ansible.builtin.set_fact:
-    pieterjanv_localscope_stack: "{{ pieterjanv_localscope_stack[:-1] }}"
-
-- name: restore local
-  ansible.builtin.set_fact:
-    local: "{{ pieterjanv_localscope_stack[-1] }}"
+- pieterjanv.localscope.include_role:
+    name: "{{ target.name | default(local.call_args.name | default(ansible_parent_role_names[0])) }}"
+    allow_duplicates: "{{ target.allow_duplicates | default(local.call_args.allow_duplicates | default(true)) }}"
+    defaults_from: "{{ target.defaults_from | default(local.call_args.defaults_from | default('main')) }}"
+    handlers_from: "{{ target.handlers_from | default(local.call_args.handlers_from | default('main')) }}"
+    public: "{{ target.public | default(local.call_args.public | default(false)) }}"
+    rolespec_validate: "{{ target.rolespec_validate | default(local.call_args.rolespec_validate | default(true)) }}"
+    tasks_from: "{{ target.tasks_from | default(local.call_args.tasks_from | default('tasks' if target.name is not defined else 'main')) }}"
+    vars_from: "{{ target.vars_from | default(local.call_args.vars_from | default('main')) }}"
+    input: "{{ input | default(None) }}"

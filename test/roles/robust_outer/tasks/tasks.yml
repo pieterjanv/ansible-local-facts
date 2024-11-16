@@ -52,13 +52,14 @@
       - local.outer_key == 'value'
 
 - name: include third party role
-  ansible.builtin.include_role:
-    name: pieterjanv.localscope.call
-  vars:
-    target: "{{ { 'name': 'some_role' } | combine({
+  pieterjanv.localscope.include_role: "{{ {
+    'name': 'some_role',
+    'input': {
+      'some_var': local.my_intermediate_result,
+    } | combine({
       'target': local._.target,
-    } if local._.target is defined else {}) }}"
-    some_var: some_value
+    } if local._.target is defined else {})
+  } }}"
 
 - name: assert local scope is still available
   ansible.builtin.assert:

@@ -7,6 +7,7 @@
       vars:
         input:
           name: test
+        some_var: play
 
   tasks:
 
@@ -24,54 +25,68 @@
         input:
           name: test
 
-    - name: Include role using the call role
-      ansible.builtin.include_role:
-        name: pieterjanv.localscope.call
-      vars:
-        target:
-          name: roles/robust_outer
+    - name: Include role using pieterjanv.localscope.include_role
+      pieterjanv.localscope.include_role:
+        name: roles/robust_outer
         input:
           name: test
 
-    - name: Include role using the call role; tasks from main
-      ansible.builtin.include_role:
-        name: pieterjanv.localscope.call
-      vars:
-        target:
-          name: roles/robust_outer
-          tasks_from: main
+    - name: Include role using pieterjanv.localscope.include_role, tasks from main
+      pieterjanv.localscope.include_role:
+        name: roles/robust_outer
+        tasks_from: main
         input:
           name: test
 
-    - name: Include role using the call role; tasks from tasks
-      ansible.builtin.include_role:
-        name: pieterjanv.localscope.call
-      vars:
-        target:
-          name: roles/robust_outer
-          tasks_from: tasks
+    - name: Include role using pieterjanv.localscope.include_role, tasks from tasks
+      pieterjanv.localscope.include_role:
+        name: roles/robust_outer
+        tasks_from: tasks
         input:
           name: test
 
-    - name: Include role using the call role; test target var can be passed
-      ansible.builtin.include_role:
-        name: pieterjanv.localscope.call
+    - name: Assert role input is evaluated eagerly
       vars:
-        target:
-          name: roles/robust_outer
-          tasks_from: tasks
-          target: target_test
+        a_var: "outer"
+      pieterjanv.localscope.include_role:
+        name: roles/some_role
         input:
-          name: test
+          target: blah
+          some_var: "{{ a_var }}"
 
     - name: test for backwards compatibility
-      pieterjanv.localscope.set:
-        updates:
-          call_args:
-            name: roles/robust_outer
-            tasks_from: tasks
-    - include_role:
-        name: pieterjanv.localscope.call
-      vars:
-        input:
-          name: test
+      ansible.builtin.meta: noop
+    - block:
+
+        - name: Include role using the call role; tasks from tasks
+          ansible.builtin.include_role:
+            name: pieterjanv.localscope.call
+          vars:
+            target:
+              name: roles/robust_outer
+              tasks_from: tasks
+            input:
+              name: test
+
+        - name: Include role using the call role; test target var can be passed
+          ansible.builtin.include_role:
+            name: pieterjanv.localscope.call
+          vars:
+            target:
+              name: roles/robust_outer
+              tasks_from: tasks
+              target: target_test
+            input:
+              name: test
+
+        - name: test using `local.call_args`
+          pieterjanv.localscope.set:
+            updates:
+              call_args:
+                name: roles/robust_outer
+                tasks_from: tasks
+        - include_role:
+            name: pieterjanv.localscope.call
+          vars:
+            input:
+              name: test

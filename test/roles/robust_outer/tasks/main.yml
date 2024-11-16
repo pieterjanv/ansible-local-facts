@@ -1,2 +1,1 @@
-- ansible.builtin.include_role:
-    name: pieterjanv.localscope.call
+- pieterjanv.localscope.include_role:

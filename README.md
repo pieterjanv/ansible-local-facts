@@ -243,7 +243,7 @@ The problem is that the `my_intermediate_result` fact is global and is overwritt
 
 ### Proof of concept solution
 
-The proposal in this repository is to call the role with awrapper role around `include_role` called `call` that 
+The proposal in this repository is to call the role with a wrapper role around `include_role` called `call` that 
 maintains a stack of dictionaries. Each time the wrapper is included it completes the following steps:
 
 1. Push the current value of the `local` fact, defaulting to an empty dictionary

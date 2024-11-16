@@ -2,10 +2,13 @@
   ansible.builtin.debug:
     var: target
 
-- name: assert standard variable `some_var` is `'some_value'`
-  ansible.builtin.assert:
-    that:
-      - some_var == "some_value"
+- vars:
+    a_var: "some_role"
+  block:
+    - name: assert standard variable `some_var` is `'outer'`
+      ansible.builtin.assert:
+        that:
+          - some_var == "outer"
 
 - ansible.builtin.set_fact:
     local: some_role
