@@ -1,13 +1,16 @@
 - name: Run tests
   hosts: localhost
   gather_facts: no
+  vars:
+    some_var: play
 
   roles:
     - role: roles/robust_outer
       vars:
+        a_var: "outer"
         input:
           name: test
-        some_var: play
+          some_var: "{{ a_var }}"
 
   tasks:
 
@@ -20,21 +23,28 @@
       ansible.builtin.import_role:
         name: roles/robust_outer
       vars:
+        a_var: "outer"
         input:
           name: test
+          some_var: "{{ a_var }}"
 
     - name: Include role robust_outer
       ansible.builtin.include_role:
         name: roles/robust_outer
       vars:
+        a_var: "outer"
         input:
           name: test
+          some_var: "{{ a_var }}"
 
     - name: Include role using pieterjanv.localscope.include_role
+      vars:
+        a_var: "outer"
       pieterjanv.localscope.include_role:
         name: roles/robust_outer
         input:
           name: test
+          some_var: "{{ a_var }}"
       register: my_result
 
     - name: assert `my_result.key` is `'value'`
@@ -43,26 +53,23 @@
           - my_result.key == 'value'
 
     - name: Include role using pieterjanv.localscope.include_role, tasks from main
+      vars:
+        a_var: "outer"
       pieterjanv.localscope.include_role:
         name: roles/robust_outer
         tasks_from: main
         input:
           name: test
+          some_var: "{{ a_var }}"
 
     - name: Include role using pieterjanv.localscope.include_role, tasks from tasks
+      vars:
+        a_var: "outer"
       pieterjanv.localscope.include_role:
         name: roles/robust_outer
         tasks_from: tasks
         input:
           name: test
-
-    - name: Assert role input is evaluated eagerly
-      vars:
-        a_var: "outer"
-      pieterjanv.localscope.include_role:
-        name: roles/some_role
-        input:
-          target: blah
           some_var: "{{ a_var }}"
 
     - name: test for backwards compatibility
@@ -73,22 +80,26 @@
           ansible.builtin.include_role:
             name: pieterjanv.localscope.call
           vars:
+            a_var: "outer"
             target:
               name: roles/robust_outer
               tasks_from: tasks
             input:
               name: test
+              some_var: "{{ a_var }}"
 
         - name: Include role using the call role; test target var can be passed
           ansible.builtin.include_role:
             name: pieterjanv.localscope.call
           vars:
+            a_var: "outer"
             target:
               name: roles/robust_outer
               tasks_from: tasks
               target: target_test
             input:
               name: test
+              some_var: "{{ a_var }}"
 
         - name: test using `local.call_args`
           pieterjanv.localscope.set:
@@ -99,5 +110,7 @@
         - include_role:
             name: pieterjanv.localscope.call
           vars:
+            a_var: "outer"
             input:
               name: test
+              some_var: "{{ a_var }}"

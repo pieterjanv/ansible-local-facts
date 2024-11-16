@@ -1,12 +1,22 @@
-# pieterjanv.localscope - Ansible collection that allows Ansible roles to scope facts locally
+# pieterjanv.localscope - Ansible collection that makes roles behave more like functions
 
 
-This repository contains an Ansible collection that enables providing roles
-with locally scoped facts, i.e. facts that are only visible to the role that
-set them.
+This repository contains an Ansible collection that attempts to make Ansible
+roles behave more like functions in typical programming languages.
 
-This aims to solve the problem of global scope in Ansible roles, 
-where intermediate results can be overwritten by included roles.
+It allows...
+
+- roles to have **locally scoped facts**, i.e. facts that are only 
+visible to the role that set them. This aims to solve the problem of global 
+scope in Ansible roles, where intermediate results can be overwritten by 
+included roles,
+- roles to take **arguments that are evaluated eagerly**, rather than the 
+default lazy evaluation. This prevents arguments from evaluating to unintended 
+values when some nested variable name conflicts,
+- roles to **return values**, through the use of `register`.
+
+And it should allow this without changing the way roles are are consumed, i.e. 
+without requiring the consumer to use the plugin directly.
 
 
 ## Table of contents
@@ -65,16 +75,20 @@ ansible-galaxy collection install .
 
 ## Usage
 
-The collection contains a single role called `call` that can be used to call
-arbitrary roles, providing them with a fact called `local` that is only
-visible to the role being called. Additionally, an action plugin called
-`set` is provided to set the `local` fact.
+This collection contains a plugin called `pieterjanv.localscope.include_role` 
+that wraps `ansible.builtin.include_role`. The plugin can be used to call 
+arbitrary roles, providing them with a fact called `local` 
+that is only visible to the role being called. Furthermore, the plugin ensures
+that any role arguments passed under the `input` key are evaluated eagerly,
+and made available at both `local.input` and as regular variables.
 
-The api of `pieterjanv.localscope.call` differs from the proof of concept 
-solution later in this document. Study the comments in the next example
-to understand how to use the `call` role.
+Secondly, an action plugin called `pieterjanv.localscope.set` is provided, 
+that allows a straightforward way of setting the `local` fact.
 
-Instead of calling the `call` role 
+Finally, an action plugin called `pieterjanv.localscope.return` is provided,
+that allows a role to return a value at the `register`ed key.
+
+Instead of calling the `pieterjanv.localscope.include_role`
 directly, it is recommended to use a small amount of boilerplate in
 `tasks/main.yml` of the roles that should have locally scoped facts, because 
 this allows the roles to be called as usual.
@@ -84,17 +98,22 @@ The boilerplate is as follows:
 ```yaml
 --- # Path: roles/my_role/tasks/main.yml
 
-# Call on the `call` role to provide this role with a locally scoped `local` 
-# fact.
+# Include the role using the custom `include_role` plugin to provide this role 
+# with a locally scoped `local` fact.
 # Optionally, specify the file in the tasks folder that contains the tasks, as
-# well as any other `include_role` parameters, under the `vars.target` key.
-# By default, `call` will include `tasks/tasks` if included without
-# `vars.target.name`, and `tasks/main` if called with `vars.target.name`.
+# well as any other `include_role` parameters.
+# By default, `include_role` will include `tasks/tasks` if included without
+# a `name` argument, and `tasks/main` if called with a `name` argument.
 # This default allows one to omit the `tasks_from` parameter while preventing
 # the infinite loop that would result if `tasks/main.yml` were included in the
-# case of leaving `vars.target.name` unspecified.
+# case of leaving the `name` parameter unspecified.
 - ansible.builtin.include_role:
     name: pieterjanv.localscope.call
+  register: my_output # when returning a value
+
+# When returning a value, make sure to use the `pieterjanv.localscope.return`
+# plugin to set the value to the `register`ed key set by the consumer.
+- pieterjanv.localscope.return: "{{ my_output }}"
 ```
 
 Then, in the role's `tasks/tasks.yml` file, the `local` fact can be used as follows:
@@ -121,23 +140,20 @@ Then, in the role's `tasks/tasks.yml` file, the `local` fact can be used as foll
     recursive: yes
 
 # When calling a role that may or may not use locally scoped facts, we have
-# to wrap it with the `call` role to ensure that our facts remain local.
-# To wrap a role with the `call` role, set the parameters as you would set them
-# on `include_role`, but under `vars.target` instead.
-# The values under the `vars.input` key are set on `local.input` in the called 
-# role.
-# Pass ordinary arguments to the role as you would normally, except for the
-# for the parameters named `target` and `input`. As these have special meaning, 
-# they can be set at `vars.target.target` and `vars.target.input`, respectively.
+# to wrap it with `pieterjanv.localscope.include_role` to ensure that our facts 
+# cannot be overwritten by the called role.
+# To wrap a role, set the `include_role` parameters as usual, and include the
+# role arguments under the `input` parameter.
+# The values under the `input` parameter are set on `local.input` in the called 
+# role, as well as being available as regular variables.
 - name: Include a nested role
-  ansible.builtin.include_role:
-    name: pieterjanv.localscope.call
-  vars:
-    target:
-      name: some_one.some_collection.some_role
+  pieterjanv.localscope.include_role:
+    name: some_one.some_collection.some_role
     input:
       some_local_var: some value
-    some_ordinary_var: some other value
+      eagerly_evaluated: "{{ local.some_key }}"
+  # will default to a dictionary with only the `changed` and `failed` keys
+  register: nested_output
 
 - name: Use the locally scoped facts knowing they have not been overwritten
   debug:
@@ -147,6 +163,14 @@ Then, in the role's `tasks/tasks.yml` file, the `local` fact can be used as foll
       local.another.key,
       local.another.key2,
     ] }}"
+
+# Optionally, return a value to the consumer. The return value must be a
+# dictionary, and will be set to the key as `register`ed by the consumer.
+# Note that Ansible always sets the `changed` and `failed` keys on the
+# registered variable.
+- name: Return a value
+  pieterjanv.localscope.return:
+    my_return_value: "some value"
 ```
 
 
@@ -181,8 +205,7 @@ overwritten by included roles. This can lead to unexpected behavior and bugs,
 especially in larger playbooks or roles.
 
 One strategy to avoid this is to prefix every role-specific variable with
-the role name. This can be cumbersome and error-prone, especially when
-variables are passed between roles.
+the role name. This can be cumbersome and error-prone.
 
 Alternatively, we can try to limit the scope of intermediate variables to the
 role that created them.
@@ -330,8 +353,7 @@ The assertion succeeds.
 
 ### On backwards compatibility
 
-For backwards compatibility and ease of use it is desirable to allow locally 
-scoped role facts without changing the way roles are consumed. This is 
+For backwards compatibility and ease of use it is desirable to keep the way roles are consumed unchanged. This is 
 demonstrated by the roles `robust_locally_scoped_outer` and 
 `robust_locally_scoped_nested`, which can be called without explicitly 
 utilizing the `call` role; `include_role`, `import_role` and the `roles`
