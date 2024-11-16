@@ -52,15 +52,25 @@
       - local.outer_key == 'value'
 
 - name: include third party role
-  ansible.builtin.include_role:
-    name: pieterjanv.localscope.call
-  vars:
-    target: "{{ { 'name': 'some_role' } | combine({
+  pieterjanv.localscope.include_role: "{{ {
+    'name': 'some_role',
+    'input': {
+    } | combine({
       'target': local._.target,
-    } if local._.target is defined else {}) }}"
-    some_var: some_value
+    } if local._.target is defined else {})
+  } }}"
+  register: third_party_result
+
+- name: assert `third_party_result` has a default structure
+  ansible.builtin.assert:
+    that:
+      - third_party_result.keys() | length == 2 and third_party_result.keys() | difference(['changed', 'failed']) | length == 0
 
 - name: assert local scope is still available
   ansible.builtin.assert:
     that:
       - local.my_intermediate_result == "outer"
+
+- name: return `some.nested.key` as a fact
+  pieterjanv.localscope.return:
+    key: "{{ local.some.nested.key }}"
