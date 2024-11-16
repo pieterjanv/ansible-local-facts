@@ -80,7 +80,8 @@ that any role arguments passed under the `input` key are evaluated eagerly,
 and made available at both `local.input` and as regular variables.
 
 Secondly, an action plugin called `pieterjanv.localscope.set` is provided, 
-that allows a straightforward way of setting the `local` fact.
+that allows a straightforward way of setting the `local` fact. Specifying
+the `register` option sets the value to the specified key instead.
 
 Finally, an action plugin called `pieterjanv.localscope.return` is provided,
 that allows a role to return a value at the `register`ed key.
