@@ -1,19 +1,16 @@
 # pieterjanv.localscope - Ansible collection that makes roles behave more like functions
 
 
-This repository contains an Ansible collection that attempts to make Ansible
-roles behave more like functions in typical programming languages.
+An Ansible collection that provides roles with localscope, eager evaluation of
+arguments, and return values.
 
-It allows...
-
-- roles to have **locally scoped facts**, i.e. facts that are only 
+- **locally scoped facts**; facts that are only 
 visible to the role that set them. This aims to solve the problem of global 
 scope in Ansible roles, where intermediate results can be overwritten by 
-included roles,
-- roles to take **arguments that are evaluated eagerly**, rather than the 
-default lazy evaluation. This prevents arguments from evaluating to unintended 
-values when some nested variable name conflicts,
-- roles to **return values**, through the use of `register`.
+included roles.
+- **arguments that are evaluated eagerly**; This prevents arguments from 
+evaluating to unintended  values when some nested variable name conflicts.
+- **return values**; `register` a name to capture the return value of a role.
 
 And it should allow this without changing the way roles are are consumed, i.e. 
 without requiring the consumer to use the plugin directly.
