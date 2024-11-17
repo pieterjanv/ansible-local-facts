@@ -66,6 +66,10 @@
     that:
       - third_party_result.keys() | length == 2 and third_party_result.keys() | difference(['changed', 'failed']) | length == 0
 
+- name: include role without input
+  pieterjanv.localscope.include_role:
+    name: roles/blank_role
+
 - name: assert local scope is still available
   ansible.builtin.assert:
     that:

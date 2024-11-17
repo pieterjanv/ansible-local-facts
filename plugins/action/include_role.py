@@ -55,11 +55,14 @@ class ActionModule(ActionBase):
                 elif key in task_vars:
                     del task_vars[key]
 
-        input = args.get('input', self._templar.template(task_vars.get('input',
-            old_local.get('input', None)
-        ) if role_name is None else None))
+        input = args.get('input', self._templar.template(task_vars.get(
+            'input',
+            old_local.get('input', None) if role_name is None else None
+        )))
         if 'input' in args:
             del args['input']
+        if 'input' in task_vars:
+            del task_vars['input']
         if input is not None:
             extra_task_vars.update(input)
 
@@ -150,7 +153,14 @@ class ActionModule(ActionBase):
                     'become_pass': self._play_context.become_pass,
                 }
             )
-            tqm.run(play)
+            result = tqm.run(play)
+            if result > 0:
+                return { 'failed': True, 'msg': (
+                    'There was an error.' if result == 1 else
+                    'Some hosts failed.' if result == 2 or result == 8 else
+                    'Some hosts were unreachable.' if result == 4 else
+                    'There was an unknown error.'
+                ) }
         except Exception as e:
             display.error(f"Error running TaskQueueManager: {e}")
             return { 'changed': False, 'failed': True, 'msg': str(e)}

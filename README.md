@@ -105,6 +105,9 @@ The boilerplate is as follows:
 # This default allows one to omit the `tasks_from` parameter while preventing
 # the infinite loop that would result if `tasks/main.yml` were included in the
 # case of leaving the `name` parameter unspecified.
+# When omitting the `name` parameter the `input` parameter defaults to
+# `local.input | default(None)`, which should work whether we are called by 
+# `ansible.builtin.include_role` or `pieterjanv.localscope.include_role`.
 - pieterjanv.localscope.include_role:
   register: my_output # when returning a value
 
@@ -136,9 +139,9 @@ Then, in the role's `tasks/tasks.yml` file, the `local` fact can be used as foll
         key2: yet another value
     recursive: yes
 
-# When calling a role that may or may not use locally scoped facts, we have
-# to wrap it with `pieterjanv.localscope.include_role` to ensure that our facts 
-# cannot be overwritten by the called role.
+# When calling a role we have to wrap it with
+# `pieterjanv.localscope include_role` to ensure that our facts  cannot be 
+# overwritten by the called role, and that input is resolved as intended
 # To wrap a role, set the `include_role` parameters as usual, and include the
 # role arguments under the `input` parameter.
 # The values under the `input` parameter are set on `local.input` in the called 
@@ -151,6 +154,13 @@ Then, in the role's `tasks/tasks.yml` file, the `local` fact can be used as foll
       eagerly_evaluated: "{{ local.some_key }}"
   # will default to a dictionary with only the `changed` and `failed` keys
   register: nested_output
+
+# Calls to boilerplated roles can minimize overhead using the `tasks_from` 
+# parameter.
+- name: Include a boilerplated role
+  pieterjanv.localscope.include_role:
+    name: roles/my_role
+    tasks_from: tasks
 
 - name: Use the locally scoped facts knowing they have not been overwritten
   debug:

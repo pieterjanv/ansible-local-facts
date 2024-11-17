@@ -1,0 +1,5 @@
+- name: assert that input is undefined
+  ansible.builtin.assert:
+    that:
+      - input is undefined
+      - local.input is undefined
