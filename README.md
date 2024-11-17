@@ -147,7 +147,7 @@ Then, in the role's `tasks/tasks.yml` file, the `local` fact can be used as foll
   pieterjanv.localscope.include_role:
     name: some_one.some_collection.some_role
     input:
-      some_local_var: some value
+      some_var: some value
       eagerly_evaluated: "{{ local.some_key }}"
   # will default to a dictionary with only the `changed` and `failed` keys
   register: nested_output
