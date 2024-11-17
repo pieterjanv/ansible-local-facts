@@ -105,8 +105,7 @@ The boilerplate is as follows:
 # This default allows one to omit the `tasks_from` parameter while preventing
 # the infinite loop that would result if `tasks/main.yml` were included in the
 # case of leaving the `name` parameter unspecified.
-- ansible.builtin.include_role:
-    name: pieterjanv.localscope.call
+- pieterjanv.localscope.include_role:
   register: my_output # when returning a value
 
 # When returning a value, make sure to use the `pieterjanv.localscope.return`
